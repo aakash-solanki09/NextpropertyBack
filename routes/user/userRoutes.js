@@ -1,0 +1,25 @@
+const express = require('express');
+const { body } = require('express-validator');
+const { createUser, login,logout } = require('../../controller/user/userController');
+const auth = require('../../middleware/auth/auth'); // Import auth middleware
+const router = express.Router();
+
+router.post(
+  '/register',
+  [
+    body('email').isEmail().withMessage('Invalid email'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  ],
+  createUser
+);
+
+router.post(
+  '/login',
+  [
+    body('email').isEmail().withMessage('Invalid email'),
+    body('password').notEmpty().withMessage('Password is required'),
+  ],
+  login
+);
+router.post("/logout", auth, logout);
+module.exports = router;
