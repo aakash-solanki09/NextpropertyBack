@@ -4,33 +4,35 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 
 const createUser = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
+  try {
+    const { name, email, password } = req.body;
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
     }
-    try {
-        const { email, password } = req.body;
 
-        const existingUser = await User.findOne({ email: email.toLowerCase() });
-        if (existingUser) {
-            return res.status(409).json({ message: "User already exists" });
-        }
+    const salt = await bcrypt.genSalt(13);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-        const salt = await bcrypt.genSalt(13);
-        const hashedPassword = await bcrypt.hash(password, salt);
+    const newUser = await User.create({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+    });
 
-        const newUser = await User.create({
-            email: email.toLowerCase(),
-            password: hashedPassword,
-        });
+    const { password: _, ...userData } = newUser._doc;
+    res.status(201).json({ message: "User created successfully", user: userData });
 
-        const { password: _, ...userData } = newUser._doc;
-        res.status(201).json({ message: "User created successfully", user: userData });
-
-    } catch (error) {
-        console.error('Error in creating user:', error);
-        return res.status(500).json({ message: 'Internal server error' });
-    }
+  } catch (error) {
+    console.error('Error in creating user:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
 const login = async (req, res) => {
@@ -48,7 +50,7 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { _id: user._id }, // ✅ This is the fix
+      { _id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -58,6 +60,7 @@ const login = async (req, res) => {
       token,
       user: {
         _id: user._id,
+        name: user.name,
         email: user.email,
         createdAt: user.createdAt,
       }
@@ -78,8 +81,24 @@ const logout = async (req, res) => {
   }
 };
 
+// ✅ Added: Get user profile by ID
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createUser,
   login,
-  logout, 
+  logout,
+  getUserProfile, 
 };

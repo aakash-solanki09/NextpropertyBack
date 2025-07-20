@@ -1,12 +1,11 @@
 const dotenv = require('dotenv');
-dotenv.config(); // <--- First!
+dotenv.config(); // Load environment variables first
+
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const propertyRoutes = require('./routes/property/propertyRouter');
 const authRoutes = require('./routes/user/userRoutes');
-
-// Load environment variables
 
 // Connect to MongoDB
 connectDB();
@@ -14,9 +13,12 @@ connectDB();
 // Initialize express app
 const app = express();
 
-// Enable CORS for React frontend (default port 3000)
+// Enable CORS for both localhost and Vercel frontend
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://next-property-pearl.vercel.app'],
+  origin: [
+    'http://localhost:5173',                    
+    'https://next-property-9x73.vercel.app'    
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -28,8 +30,6 @@ app.use(express.json());
 // Mount API routes
 app.use('/api', authRoutes);
 app.use('/api', propertyRoutes);
-
-
 
 // Start the server
 const PORT = process.env.PORT || 8000;
