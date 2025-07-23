@@ -6,7 +6,6 @@ const auth = require('../../middleware/auth/auth');
 
 router.post(
   '/properties',
-  auth,
   upload.array('images', 5),
   propertyController.createProperty
 );

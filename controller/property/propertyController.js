@@ -11,7 +11,11 @@ const createProperty = async (req, res) => {
       typeOfProperty,
       listingType,
       location,
-      price
+      price,
+      bhk,
+      area,
+      carpetArea,
+      buildUpArea
     } = req.body;
 
     let imageUrls = [];
@@ -24,7 +28,6 @@ const createProperty = async (req, res) => {
       imageUrls = uploads.map(upload => upload.secure_url);
     }
 
-    // Create property without contactNumber (admin creates it)
     const newProperty = await property.create({
       title,
       description,
@@ -32,7 +35,11 @@ const createProperty = async (req, res) => {
       typeOfProperty,
       listingType,
       location,
-      price
+      price,
+      bhk,
+      area,
+      carpetArea,
+      buildUpArea
     });
 
     res.status(201).json({
@@ -60,7 +67,6 @@ const getPropertyById = async (req, res) => {
   }
 };
 
-
 const getAllPublicProperties = async (req, res) => {
   try {
     const properties = await property.find();
@@ -83,7 +89,11 @@ const getAllPublicProperties = async (req, res) => {
       typeOfProperty,
       listingType,
       location,
-      price
+      price,
+       bhk,
+      area,
+      carpetArea,
+      buildUpArea
     } = req.body;
 
     // Convert to array if FormData sends a single string
@@ -118,7 +128,11 @@ const getAllPublicProperties = async (req, res) => {
         typeOfProperty,
         listingType,
         location,
-        price
+        price,
+        bhk,
+        area,
+        carpetArea,
+        buildUpArea
       },
       { new: true }
     );
