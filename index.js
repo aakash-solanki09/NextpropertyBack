@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-dotenv.config(); // Load environment variables first
+dotenv.config(); // Load env vars before anything else
 
 const express = require('express');
 const cors = require('cors');
@@ -13,23 +13,29 @@ connectDB();
 // Initialize express app
 const app = express();
 
-// Enable CORS for both localhost and Vercel frontend
+// Setup CORS with tooling support
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',                    
-    'https://next-property-25z6.vercel.app'    
-  ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Parse incoming JSON requests
+// Parse incoming JSON
 app.use(express.json());
 
-// Mount API routes
+// Mount routes
 app.use('/api', authRoutes);
 app.use('/api', propertyRoutes);
+
 app.get('/', (req, res) => {
   res.send('Backend is live on Render!');
 });
