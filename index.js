@@ -31,10 +31,10 @@ app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api', propertyRoutes);
 app.get('/', (req, res) => {
-  res.send('🚀 Backend is live on Render!');
+  res.send('Backend is live on Render!');
 });
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

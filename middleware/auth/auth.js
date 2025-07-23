@@ -10,7 +10,18 @@ const authMiddleware = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; 
+
+        // Handle admin separately
+        if (decoded.email === process.env.ADMIN_EMAIL) {
+            req.user = {
+                email: decoded.email,
+                role: 'admin',
+                name: 'Admin'
+            };
+        } else {
+            req.user = decoded;
+        }
+
         next();
     } catch (err) {
         console.error("Token verification failed:", err);

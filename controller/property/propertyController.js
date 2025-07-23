@@ -1,59 +1,50 @@
 const property = require("../../models/property/property");
-const User = require("../../models/user/user");
 const { uploadToCloudinary } = require("../../utils/cloudinary");
 
 const createProperty = async (req, res) => {
-if (!req.user || !req.user._id) {
-  return res.status(401).json({ message: "Unauthorized. User not found." });
-}
+  // Check if the user is an admin
 
   try {
     const {
       title,
       description,
       typeOfProperty,
+      listingType,
       location,
-      price,
-      contactNumber
+      price
     } = req.body;
 
-    let imageUrl = null;
+    let imageUrls = [];
 
-    // Upload image to Cloudinary if present
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer);
-      imageUrl = result.secure_url;
+    // Upload multiple images to Cloudinary
+    if (req.files && req.files.length > 0) {
+      const uploads = await Promise.all(
+        req.files.map(file => uploadToCloudinary(file.buffer))
+      );
+      imageUrls = uploads.map(upload => upload.secure_url);
     }
 
+    // Create property without contactNumber (admin creates it)
     const newProperty = await property.create({
       title,
       description,
-      imageUrl,
+      images: imageUrls,
       typeOfProperty,
+      listingType,
       location,
-      price,
-      contactNumber,
-      user: req.user._id
+      price
     });
 
-    res.status(201).json({ message: "Property created successfully", newProperty });
+    res.status(201).json({
+      message: "Property created successfully",
+      newProperty
+    });
   } catch (error) {
-    console.error('Error in creating property:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error in creating property:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
-const getAllProperties = async (req, res) => {
-  try {
-    const properties = await property.find({user: req.user._id});
-    res.status(200).json(properties);
-  } catch (error) {
-    console.error('Error in fetching properties:', error);
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-}
-    
 
 const getPropertyById = async (req, res) => {
   const propertyId = req.params.id;
@@ -72,7 +63,7 @@ const getPropertyById = async (req, res) => {
 
 const getAllPublicProperties = async (req, res) => {
   try {
-    const properties = await property.find().populate("user", "name email");
+    const properties = await property.find();
     res.status(200).json(properties);
   } catch (error) {
     console.error("Error fetching all public properties:", error);
@@ -81,36 +72,53 @@ const getAllPublicProperties = async (req, res) => {
 };
 
 
-  const updateProperty = async (req, res) => {
+
+ const updateProperty = async (req, res) => {
   const propertyId = req.params.id;
- 
+
   try {
     const {
       title,
       description,
       typeOfProperty,
+      listingType,
       location,
-      price,
-      contactNumber
+      price
     } = req.body;
 
-    let imageUrl = req.body.imageUrl; // default to existing if not uploading
+    // Convert to array if FormData sends a single string
+    const existingImages = Array.isArray(req.body.existingImages)
+      ? req.body.existingImages
+      : req.body.existingImages ? [req.body.existingImages] : [];
 
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer);
-      imageUrl = result.secure_url;
+    const imagesToRemove = Array.isArray(req.body.imagesToRemove)
+      ? req.body.imagesToRemove
+      : req.body.imagesToRemove ? [req.body.imagesToRemove] : [];
+
+    // Upload new files to Cloudinary
+    let newImageUrls = [];
+    if (req.files && req.files.length > 0) {
+      const uploads = await Promise.all(
+        req.files.map(file => uploadToCloudinary(file.buffer))
+      );
+      newImageUrls = uploads.map(upload => upload.secure_url);
     }
+
+    // Optionally: delete removed images from Cloudinary here if needed
+    // You'd need to track the public_id of each image when you first upload them.
+
+    const finalImageUrls = [...existingImages, ...newImageUrls];
 
     const updatedProperty = await property.findByIdAndUpdate(
       propertyId,
       {
         title,
         description,
-        imageUrl,
+        images: finalImageUrls,
         typeOfProperty,
+        listingType,
         location,
-        price,
-        contactNumber
+        price
       },
       { new: true }
     );
@@ -121,33 +129,33 @@ const getAllPublicProperties = async (req, res) => {
 
     res.status(200).json({ message: "Property updated successfully", updatedProperty });
   } catch (error) {
-    console.error('Error in updating property:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error in updating property:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
-   
+
 
 
 const deleteProperty = async (req, res) => {
   const propertyId = req.params.id;
+
   try {
+    // Corrected: use the lowercase model name you imported
     const deletedProperty = await property.findByIdAndDelete(propertyId);
+
     if (!deletedProperty) {
       return res.status(404).json({ message: "Property not found" });
     }
-    res.status(200).json({ message: "Property deleted successfully" });
+
+    return res.status(200).json({ message: "Property deleted successfully" });
   } catch (error) {
-    console.error('Error in deleting property:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error in deleting property:", error.message, error.stack);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}   
-
-
-
+};
 
 module.exports={
     createProperty,
-    getAllProperties,
      getAllPublicProperties,
     getPropertyById,
     updateProperty,
