@@ -15,6 +15,16 @@ const propertySchema = new mongoose.Schema({
     type: String, 
     enum: ['furnished', 'semi-furnished', 'unfurnished'], 
     default: 'unfurnished' 
+  },
+  mobileNum: {
+    type: String,
+    required: true,
+    validate: {
+      validator: function(v) {
+        return /^[0-9]{10}$/.test(v);
+      },
+      message: props => `${props.value} is not a valid 10-digit mobile number!`
+    }
   }
 }, { timestamps: true }); 
 
