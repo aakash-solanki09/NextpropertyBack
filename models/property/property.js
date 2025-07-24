@@ -10,6 +10,7 @@ const propertySchema = new mongoose.Schema({
   typeOfProperty: { type: String, required: true, trim: true },
   listingType: { type: String, enum: ['rent', 'sale'], required: true },
   location: { type: String, required: true, trim: true },
+  landmark: { type: String, required: true, trim: true },
   price: { type: Number, required: true, min: 0 },
   furnishedType: { 
     type: String, 
