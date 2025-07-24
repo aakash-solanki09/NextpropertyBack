@@ -13,9 +13,9 @@ const createProperty = async (req, res) => {
       location,
       price,
       bhk,
-      area,
       carpetArea,
-      buildUpArea
+      buildUpArea,
+      furnishedType
     } = req.body;
 
     let imageUrls = [];
@@ -37,9 +37,9 @@ const createProperty = async (req, res) => {
       location,
       price,
       bhk,
-      area,
       carpetArea,
-      buildUpArea
+      buildUpArea,
+       furnishedType
     });
 
     res.status(201).json({
@@ -93,7 +93,8 @@ const getAllPublicProperties = async (req, res) => {
        bhk,
       area,
       carpetArea,
-      buildUpArea
+      buildUpArea,
+       furnishedType
     } = req.body;
 
     // Convert to array if FormData sends a single string
@@ -132,7 +133,8 @@ const getAllPublicProperties = async (req, res) => {
         bhk,
         area,
         carpetArea,
-        buildUpArea
+        buildUpArea,
+         furnishedType
       },
       { new: true }
     );

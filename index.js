@@ -6,6 +6,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const propertyRoutes = require('./routes/property/propertyRouter');
 const authRoutes = require('./routes/user/userRoutes');
+const contactRoutes = require('./routes/contact/contactRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -35,6 +36,8 @@ app.use(express.json());
 // Mount routes
 app.use('/api', authRoutes);
 app.use('/api', propertyRoutes);
+app.use('/api', contactRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('Backend is live on Render!');
