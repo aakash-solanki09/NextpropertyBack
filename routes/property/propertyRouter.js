@@ -6,14 +6,14 @@ const auth = require('../../middleware/auth/auth');
 
 router.post(
   '/properties',
-  upload.array('images', 5),
+  upload.array('images', 15),
   propertyController.createProperty
 );
 
 router.put(
   '/properties/:id',
   auth,
-  upload.array('images', 5),
+  upload.array('images', 15),
   propertyController.updateProperty
 );
 
